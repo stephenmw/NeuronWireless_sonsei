@@ -20,70 +20,32 @@
  */
 
 #include "hidDefy.h"
-#include <string.h>
+#include "PloverHIDProtocol.h"
 
-#warning "Temporary SONSEI usage definition needs to be added to hidDefy.h when we publicly announce the new Sonsei product."
-#define RAW_USAGE_SONSEI    0x01
+#define RAW_USAGE_SONSEI 0x01
+#define USB_RAW_HID_REPORT_SIZE 63
 
-// BLE descriptor: full 200-byte Raw HID report (report ID 5)
-const uint8_t hid_report_descriptor_sonsei[] = HID_DEFY_REPORT_DESCRIPTOR( RAW_USAGE_SONSEI );
-
-void hid_report_descriptor_get( const uint8_t ** pp_desc, uint32_t * p_desc_len )
-{
-    *pp_desc = &hid_report_descriptor_sonsei[0];
-    *p_desc_len = sizeof( hid_report_descriptor_sonsei );
-}
-
-// ── USB descriptor: same reports as BLE but Raw HID uses 63-byte reports ────
-//
-// USB Full Speed interrupt endpoints are limited to 64 bytes per packet.
-// With the 1-byte report ID prepended, the maximum data payload is 63 bytes.
-// The BLE Raw HID section (200 bytes) is always the last item appended by
-// HID_DEFY_REPORT_DESCRIPTOR, so we can swap it for a 63-byte version.
-//
-// Both TUD_HID_REPORT_DESC_GENERIC_INOUT_DYGMA(200,...) and (63,...) produce
-// the same number of descriptor bytes (REPORT_COUNT value fits in 1 byte for
-// both 63 and 200), verified at compile time via static_assert below.
-
-#define USB_RAW_HID_REPORT_SIZE 63  // 63 data bytes + 1 report ID = 64-byte USB packet
-
-// Probe: measures the exact byte-size of the BLE Raw HID tail in the descriptor.
-static const uint8_t ble_rawhid_tail_probe[] = {
-    TUD_HID_REPORT_DESC_GENERIC_INOUT_DYGMA(OUTPUT_REPORT_LEN_RAW, RAW_USAGE_SONSEI,
-                                            HID_REPORT_ID(REPORT_ID_RAW))
-};
-
-// Replacement: 63-byte Raw HID section for USB
-static const uint8_t usb_rawhid_tail[] = {
+namespace {
+const uint8_t usb_descriptor[] = {
+    HID_DEFY_COMMON_REPORT_DESCRIPTOR, PLOVER_HID_DESCRIPTOR,
     TUD_HID_REPORT_DESC_GENERIC_INOUT_DYGMA(USB_RAW_HID_REPORT_SIZE, RAW_USAGE_SONSEI,
-                                            HID_REPORT_ID(REPORT_ID_RAW))
+                                           HID_REPORT_ID(REPORT_ID_RAW))
 };
-
-// Compile-time guard: the swap requires both sections to have equal byte count.
-static_assert(sizeof(ble_rawhid_tail_probe) == sizeof(usb_rawhid_tail),
-    "BLE and USB Raw HID descriptor sections must have equal byte count for the tail-swap");
-
-static uint8_t usb_desc_buf[sizeof(hid_report_descriptor_sonsei)];
-static bool    usb_desc_ready = false;
-
-static void build_usb_descriptor()
-{
-    if (usb_desc_ready) return;
-    const size_t base_len = sizeof(hid_report_descriptor_sonsei) - sizeof(ble_rawhid_tail_probe);
-    memcpy(usb_desc_buf,            hid_report_descriptor_sonsei, base_len);
-    memcpy(usb_desc_buf + base_len, usb_rawhid_tail,              sizeof(usb_rawhid_tail));
-    usb_desc_ready = true;
+const uint8_t ble_descriptor[] = {
+    HID_DEFY_COMMON_REPORT_DESCRIPTOR, PLOVER_HID_DESCRIPTOR,
+    TUD_HID_REPORT_DESC_GENERIC_INOUT_DYGMA(OUTPUT_REPORT_LEN_RAW, RAW_USAGE_SONSEI,
+                                           HID_REPORT_ID(REPORT_ID_RAW))
+};
 }
 
-void hid_report_descriptor_usb_get( const uint8_t ** pp_desc, uint32_t * p_desc_len )
-{
-    build_usb_descriptor();
-    *pp_desc    = usb_desc_buf;
-    *p_desc_len = sizeof(usb_desc_buf);
+void hid_report_descriptor_usb_get(const uint8_t **data, uint32_t *length) {
+    *data = usb_descriptor;
+    *length = sizeof(usb_descriptor);
 }
-
-void hid_report_descriptor_ble_get( const uint8_t ** pp_desc, uint32_t * p_desc_len )
-{
-    /* Get the valid descriptor */
-    hid_report_descriptor_get( pp_desc, p_desc_len );
+void hid_report_descriptor_ble_get(const uint8_t **data, uint32_t *length) {
+    *data = ble_descriptor;
+    *length = sizeof(ble_descriptor);
+}
+void hid_report_descriptor_get(const uint8_t **data, uint32_t *length) {
+    hid_report_descriptor_ble_get(data, length);
 }

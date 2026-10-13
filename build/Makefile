@@ -238,6 +238,7 @@ INCDIR += -I$(KALEIDOSCOPE_ROOT_DIR)/src/kaleidoscope/device/dygma/keyboardManag
 INCDIR += -I$(KALEIDOSCOPE_ROOT_DIR)/src/kaleidoscope/plugin/
 
 # Keyboardio HID
+INCDIR += -I$(LIB_ROOT_DIR)/PloverHID/
 INCDIR += -I$(KEYBOARDIO_HID_ROOT_DIR)/src/
 
 # SDK
@@ -469,6 +470,7 @@ SRCSCXX += $(LIB_ROOT_DIR)/Communications/src/device/neuron/sonsei/Communication
 #SRCSCXX += $(LIB_ROOT_DIR)/Communications/src/Communications_protocol_rf.cpp
 
 # Keyboardio HID
+SRCSCXX += $(LIB_ROOT_DIR)/PloverHID/PloverHID.cpp
 SRCSCXX += $(KEYBOARDIO_HID_ROOT_DIR)/src/MultiReport/ConsumerControl.cpp
 SRCSCXX += $(KEYBOARDIO_HID_ROOT_DIR)/src/MultiReport/Keyboard.cpp
 SRCSCXX += $(KEYBOARDIO_HID_ROOT_DIR)/src/MultiReport/Mouse.cpp
