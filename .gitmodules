@@ -1,4 +1,4 @@
 [submodule "libraries"]
 	path = libraries
-	url = git@github.com:Dygmalab/NeuronWirelessLibs.git
-	branch = of-kaleidoscope_adapter
+	url = https://github.com/stephenmw/NeuronWirelessLibs.git
+	branch = ploverhid-support
