@@ -20,9 +20,13 @@ received by Plover cannot be retracted.
 USB/BLE expose usage page `0xFF50`, usage `0x4C56`, report ID `0x50` as an
 Application collection. Sonsei's existing configuration reports retain their
 63-byte USB and 200-byte BLE payloads. The plugin is registered in the
-Kaleidoscope adapter before KeyRoleManager. Ordinary typing remains on the
-existing report path; synthetic macro/Superkey Plover assignments are consumed
-without steno output.
+Kaleidoscope adapter immediately after KbdInterface so LEDControl and other
+Dygma handlers can observe PloverHID key activity before it is consumed.
+KeyRoleManager passes
+Plover key events through without tap/hold queuing; OneShot processes them
+normally, so a steno press can use up a pending one-shot modifier or layer.
+Ordinary typing remains on the existing report path; synthetic macro/Superkey
+Plover assignments are consumed without steno output.
 
 ## Build
 
